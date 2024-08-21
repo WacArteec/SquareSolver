@@ -1,0 +1,8 @@
+# depslib dependency file v1.0
+1724255013 source:d:\codeblocks\squaresolver\main.cpp
+	<stdio.h>
+	<math.h>
+	<assert.h>
+	<time.h>
+	<stdlib.h>
+
