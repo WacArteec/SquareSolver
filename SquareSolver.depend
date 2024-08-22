@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1724337312 source:d:\codeblocks\squaresolver\main.cpp
+1724351574 source:d:\codeblocks\squaresolver\main.cpp
 	<stdio.h>
 	<math.h>
 	<assert.h>
