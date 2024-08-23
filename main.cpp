@@ -5,10 +5,9 @@
 #define RED     "\033[31m"      /* Red */
 #define GREEN   "\033[32m"      /* Green */
 #define BLACK   "\033[30m"      /* Black */
-const float COMPARECONST = 1e-12;
+const float COMPARECONST = 1e-5;
 enum constantnumbers {Zero, One, Two, Infinity};
-/**
-*/
+
 struct Parameters
 
 {
@@ -130,8 +129,11 @@ void Checker()
     {{0, 1, 1}, {One, -1, 0}},
     {{1, 1, 1}, {Zero, 0, 0}},
     {{1, 2, 1}, {One, -1, 0}},
-    {{2, 4, -6}, {Two, -3, 1}}
-//    {{},{}}
+    {{2, 4, -6}, {Two, -3, 1}},
+    {{7, 9, -13},{Two, -2.14964, 0.86393}},
+    {{23, 23, -17},{Two, -1.49455, 0.49455}},
+    {{0, 23, 17},{One, -0.73913, 0}},
+    {{0, 1, 0},{One, 0, 0}}
     };
 
     for(int i=0; i<(sizeof(CheckMassive)/sizeof(CheckMassive[0])); i++)
@@ -165,6 +167,7 @@ void Checker()
 void SolveManager(const Parameters par, Solution * const sol)
 {
     assert(sol);
+    assert(&par);
     const float a = par.a, b = par.b, c = par.c;
 
     if(CompareFloats(0, a)) LinearEquation(b, c, sol);
