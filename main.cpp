@@ -5,74 +5,80 @@
 #define RED     "\033[31m"      /* Red */
 #define GREEN   "\033[32m"      /* Green */
 #define BLACK   "\033[30m"      /* Black */
-
 const float COMPARECONST = 1e-12;
-
 enum constantnumbers {Zero, One, Two, Infinity};
+
+struct Parameters
+
+{
+    float a;
+    float b;
+    float c;
+};
 
 struct Solution
 {
-    float coef[3];
     int countroots;
     float root1, root2;
 };
 
 struct CheckNumbers
 {
+    Parameters par_a;
     Solution sol_a;
-
 };
 
-const CheckNumbers CheckMassive[] = {
-    {{0, 0, 0, Infinity, 0, 0}},
-    {{0, 0, 1, Zero, 0, 0}},
-    {{0, 1, 1, One, -1, 0}},
-    {{1, 1, 1, Zero, 0, 0}},
-    {{1, 2, 1, One, -1, 0}},
-    {{2, 4, -6, Two, -3, 1}}
-};
-
-void SolveManager(Solution *sol);
-int ChoiseEnter(const char refer);
+void SolveManager(const Parameters par, Solution *const sol);
+int EqualSymbol(const char refer);
 int CompareFloats(const float a, const float b);
 void Checker();
-void LinearEquation(const float b, const float c, Solution *sol);
-void PrintSolves(Solution sol);
-void UserInputAndCheck(Solution *sol);
+void LinearEquation(const float b, const float c, Solution * const sol);
+void PrintSolves(const Solution sol);
+void UserInputAndCheck(float coef[3]);
 void GetcharReset();
-void SquareEquation(const float a, const float b, const float c, Solution *sol);
+void SquareEquation(const float a, const float b, const float c, Solution * const sol);
+int Min(const float a, const float b);
+int Max(const float a, const float b);
+float FabsZero(const float a);
 
 int main()
 {
-    printf("this is solver square equals from WacArteec \n");
+    printf("this is solver of square equals from WacArteec \n");
 
     while(1)
     {
+        struct Parameters par;
         struct Solution sol;
-        sol = {.coef = {0, 0, 0}, .countroots = 0, .root1 = 0, .root2 = 0};
+
+        par = {0, 0, 0};
+        sol = {.countroots = 0, .root1 = 0, .root2 = 0};
 
         printf("To enter your parameters press e or press another button to check solver\n");
 
-        if(ChoiseEnter('e'))
+        if(EqualSymbol('e'))
         {
-            UserInputAndCheck(&sol);
-            SolveManager(&sol);
+            float coef[3] = {0, 0, 0};
+            UserInputAndCheck(coef);
+            par.a = coef[0];
+            par.b = coef[1];
+            par.c = coef[2];
+            SolveManager(par, &sol);
             PrintSolves(sol);
         }
         else
         {
-                Checker();
+            Checker();
         }
 
         GetcharReset();
-        printf(" \nEnter r to repeat or another key to escape\n");
+        printf("\nEnter r to repeat or another key to escape\n");
 
-        if(!ChoiseEnter('r')) break;
+        if(!EqualSymbol('r')) break;
     }
 return 0;
 }
 
-int ChoiseEnter(const char refer)
+int EqualSymbol(const char refer)
 {
     int choise = ((getchar()) == refer);
     GetcharReset();
@@ -85,28 +91,30 @@ void GetcharReset()
     while((reset = getchar()) != EOF && reset != '\n');
 }
 
-int CompareFloats(float a, float b)
+int CompareFloats(const float a, const float b)
 {
-    return(fabs(a-b) < COMPARECONST);
+    return(fabs(a - b) < COMPARECONST);
 }
 
-void UserInputAndCheck(Solution *sol)
+void UserInputAndCheck(float coef[3])
 {
-    for(int i=0; i<3;i++)
+    for(int i = 0; i < 3; i++)
     {
-        sol->coef[i]=0;
-    }
-
-    for(int i=0; i<3; i++)
-    {
-        char in = 'a' + i;
-        printf("Enter coefficient %c:\n",in);
-
-        if(scanf("%g",sol->coef + i) != 1 || !isfinite(sol->coef[i]) || !ChoiseEnter('\n'))
+        printf("Enter Parameter %c:\n",'a'+i);
+        if(scanf("%g", &coef[i]) != 1)
+        {
+            GetcharReset();
+            printf("You can enter only numbers\n");
+            i--;
+        }
+        else if(!isfinite(coef[i]))
         {
             printf("You can enter only numbers\n");
-            GetcharReset();
-
+            i--;
+        }
+        else if(!EqualSymbol('\n'))
+        {
+            printf("You can enter only numbers\n");
             i--;
         }
     }
@@ -114,11 +122,21 @@ void UserInputAndCheck(Solution *sol)
 
 void Checker()
 {
+    const CheckNumbers CheckMassive[] = {
+    {{0, 0, 0}, {Infinity, 0, 0}},
+    {{0, 0, 1}, {Zero, 0, 0}},
+    {{0, 1, 1}, {One, -1, 0}},
+    {{1, 1, 1}, {Zero, 0, 0}},
+    {{1, 2, 1}, {One, -1, 0}},
+    {{2, 4, -6}, {Two, -3, 1}}
+//    {{},{}}
+    };
 
-    for(int i=0; i<6; i++)
+    for(int i=0; i<(sizeof(CheckMassive)/sizeof(CheckMassive[0])); i++)
     {
-        struct Solution sol = {{CheckMassive[i].sol_a.coef[0], CheckMassive[i].sol_a.coef[1], CheckMassive[i].sol_a.coef[2]},0, 0, 0};
-        SolveManager(&sol);
+        struct Parameters par = {CheckMassive[i].par_a.a, CheckMassive[i].par_a.b, CheckMassive[i].par_a.c};
+        struct Solution sol = {0, 0, 0};
+        SolveManager(par, &sol);
 
         if(sol.countroots != CheckMassive[i].sol_a.countroots ||
            CompareFloats(sol.root1, CheckMassive[i].sol_a.root1) == 0 ||
@@ -130,64 +148,85 @@ void Checker()
 
             printf(RED " Check %d failed a=%g b=%g c=%g x1=%g x2=%g NR=%d" BLACK "\n",
                    i+1,
-                   CheckMassive[i].sol_a.coef[0],
-                   CheckMassive[i].sol_a.coef[1],
-                   CheckMassive[i].sol_a.coef[2],
+                   CheckMassive[i].par_a.a,
+                   CheckMassive[i].par_a.b,
+                   CheckMassive[i].par_a.c,
                    sol.root1,
                    sol.root2,
                    sol.countroots);
         }
-        else printf(GREEN "Test %d passed successfully"BLACK"\n",i+1);
+        else printf(GREEN "Test %d passed successfully"BLACK"\n", i+1);
     }
     printf("Check is done\n");
 }
 
-void SolveManager(Solution *sol)
+void SolveManager(const Parameters par, Solution * const sol)
 {
     assert(sol);
-    const float a = sol->coef[0], b = sol->coef[1], c = sol->coef[2];
+    const float a = par.a, b = par.b, c = par.c;
 
-    if(CompareFloats(0, a))  LinearEquation(b, c, sol);
+    if(CompareFloats(0, a)) LinearEquation(b, c, sol);
     else    SquareEquation(a, b, c, sol);
 }
 
-void LinearEquation(const float b, const float c, Solution *sol)
+void LinearEquation(const float b, const float c, Solution *const sol)
 {
-        if(CompareFloats(0, b))
-        {
-            if(CompareFloats(0, c)) sol->countroots = Infinity;
-            else sol->countroots = Zero;
-        }
-        else
-        {
-            sol->root1= -c/b;
-            sol->countroots = One;
-        }
+    enum constantnumbers {Zero, One, Two, Infinity};
+    if(CompareFloats(0, b))
+    {
+        if(CompareFloats(0, c)) sol->countroots = Infinity;
+        else sol->countroots = Zero;
+    }
+    else
+    {
+        sol->root1= FabsZero(-c/b);
+        sol->countroots = One;
+    }
 }
 
-void SquareEquation(const float a, const float b, const float c, Solution *sol)
+void SquareEquation(const float a, const float b, const float c, Solution *const sol)
 {
-    const float d = pow(b,2) - 4*a*c;
 
-    if(d < 0)
+    enum constantnumbers {Zero, One, Two, Infinity};
+    const float d = b*b - 4*a*c;
+
+    if(CompareFloats(0, d))
+    {
+        sol->root1 = FabsZero(-b/(2*a));
+        sol->countroots = One;
+    }
+    else if(d < 0)
     {
         sol->countroots = Zero;
-    }
-    else if(CompareFloats(0, d))
-    {
-        sol->root1 = -b/(2*a);
-        sol->countroots = One;
     }
     else
     {
         const float sqrt_d = sqrt (d);
-        sol->root1 = (-b - sqrt_d)/(2*a);
-        sol->root2 = (-b + sqrt_d)/(2*a);
+        sol->root1 = FabsZero(Min((-b - sqrt_d)/(2*a),(-b + sqrt_d)/(2*a)));
+        sol->root2 = FabsZero(Max((-b - sqrt_d)/(2*a),(-b + sqrt_d)/(2*a)));
         sol->countroots = Two;
     }
 }
 
-void PrintSolves(Solution sol)
+float FabsZero(const float a)
+{
+    if (CompareFloats(0,a)) return fabs(a);
+    else return a;
+}
+
+int Min(const float a, const float b)
+{
+    if(a < b) return a;
+    else return b;
+}
+
+int Max(const float a, const float b)
+{
+    if(a > b) return a;
+    else return b;
+}
+
+void PrintSolves(const Solution sol)
 {
     switch(sol.countroots)
     {
